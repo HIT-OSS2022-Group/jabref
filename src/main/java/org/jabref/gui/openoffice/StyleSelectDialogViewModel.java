@@ -112,6 +112,18 @@ public class StyleSelectDialogViewModel {
         dialogService.showCustomDialogAndWait(item.getStyle().getName(), pane, ButtonType.OK);
     }
 
+    public void viewCslStyle(StyleSelectCslItemViewModel item) {
+        DialogPane pane = new DialogPane();
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToHeight(true);
+        scrollPane.setFitToWidth(true);
+        TextArea styleView = new TextArea(item.sourceProperty().getValue());
+        styleView.setEditable(false);
+        scrollPane.setContent(styleView);
+        pane.setContent(scrollPane);
+        dialogService.showCustomDialogAndWait(item.titleProperty().getValue(), pane, ButtonType.OK);
+    }
+
     public ObjectProperty<StyleSelectItemViewModel> selectedItemProperty() {
         return selectedItem;
     }
@@ -119,6 +131,7 @@ public class StyleSelectDialogViewModel {
     public void storePrefs() {
         List<String> externalStyles = styles.stream().map(this::toOOBibStyle).filter(style -> !style.isInternalStyle()).map(OOBibStyle::getPath).collect(Collectors.toList());
         preferences.setExternalStyles(externalStyles);
+        // TODO: Fit CSL into preferences style
         preferences.setCurrentStyle(selectedItem.getValue().getStylePath());
         preferencesService.setOpenOfficePreferences(preferences);
     }

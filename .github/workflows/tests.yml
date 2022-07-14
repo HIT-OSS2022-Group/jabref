@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - main-release
+      - csl-lo-oo-integration
+      - csl-lo-oo-integration-dev
   pull_request:
     # always run on pull requests
   workflow_dispatch:
