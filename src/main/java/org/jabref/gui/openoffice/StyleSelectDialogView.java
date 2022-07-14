@@ -2,6 +2,7 @@ package org.jabref.gui.openoffice;
 
 import javax.inject.Inject;
 
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -19,6 +20,7 @@ import org.jabref.gui.theme.ThemeManager;
 import org.jabref.gui.util.BaseDialog;
 import org.jabref.gui.util.ValueTableCellFactory;
 import org.jabref.gui.util.ViewModelTableRowFactory;
+import org.jabref.logic.citationstyle.CitationStyle;
 import org.jabref.logic.l10n.Localization;
 import org.jabref.logic.layout.TextBasedPreviewLayout;
 import org.jabref.logic.openoffice.style.OOBibStyle;
@@ -30,6 +32,8 @@ import org.jabref.preferences.PreferencesService;
 
 import com.airhacks.afterburner.views.ViewLoader;
 import com.tobiasdiez.easybind.EasyBind;
+
+import java.util.stream.Collectors;
 
 public class StyleSelectDialogView extends BaseDialog<OOBibStyle> {
 
@@ -43,6 +47,9 @@ public class StyleSelectDialogView extends BaseDialog<OOBibStyle> {
     @FXML private TableColumn<StyleSelectItemViewModel, String> colFile;
     @FXML private TableColumn<StyleSelectItemViewModel, Boolean> colDeleteIcon;
     @FXML private Button add;
+    @FXML private TableView<StyleSelectCslItemViewModel> cslStyles;
+    @FXML private TableColumn<StyleSelectCslItemViewModel, String> colCslTitle;
+    @FXML private TableColumn<StyleSelectCslItemViewModel, String> colCslFile;
     @FXML private VBox vbox;
 
     @Inject private PreferencesService preferencesService;
@@ -88,6 +95,9 @@ public class StyleSelectDialogView extends BaseDialog<OOBibStyle> {
         colFile.setCellValueFactory(cellData -> cellData.getValue().fileProperty());
         colDeleteIcon.setCellValueFactory(cellData -> cellData.getValue().internalStyleProperty());
 
+        colCslTitle.setCellValueFactory(cellData -> cellData.getValue().titleProperty());
+        colCslFile.setCellValueFactory(cellData -> cellData.getValue().fileProperty());
+
         new ValueTableCellFactory<StyleSelectItemViewModel, Boolean>()
                 .withGraphic(internalStyle -> {
                     if (!internalStyle) {
@@ -127,6 +137,21 @@ public class StyleSelectDialogView extends BaseDialog<OOBibStyle> {
             previewArticle.setLayout(new TextBasedPreviewLayout(style.getStyle().getReferenceFormat(StandardEntryType.Article)));
             previewBook.setLayout(new TextBasedPreviewLayout(style.getStyle().getReferenceFormat(StandardEntryType.Book)));
         });
+
+        cslStyles.setItems(
+                CitationStyle.discoverCitationStyles()
+                        .stream()
+                        .map(StyleSelectCslItemViewModel::new)
+                        .collect(Collectors.toCollection(FXCollections::observableArrayList))
+        );
+
+        new ViewModelTableRowFactory<StyleSelectCslItemViewModel>()
+                .withOnMouseClickedEvent((item, event) -> {
+                    if (event.getClickCount() == 2) {
+                        viewModel.viewCslStyle(item);
+                    }
+                })
+                .install(cslStyles);
     }
 
     private ContextMenu createContextMenu() {
